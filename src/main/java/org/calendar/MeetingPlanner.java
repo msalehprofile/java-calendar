@@ -7,30 +7,29 @@ import java.util.Scanner;
 
 public class MeetingPlanner {
     private static String myName;
-    private static String colleaguesName;
+    private static String colleaguesName = "Gary";
     static ArrayList<Meetings> personOneMeetingTimes = new ArrayList<>();
     static ArrayList<String> personOneTimeBounds = new ArrayList<>();
     static ArrayList<Meetings> personTwoMeetingTimes = new ArrayList<>();
-    static ArrayList<String> personTwoTimeBounds = new ArrayList<>();
+    static String[] personTwoTimeBounds = {"9:00", "17:30"};
+    private static String meetingLength;
+
 
     public static void inputTimeBounds() {
         System.out.println("What is your name?");
-        Scanner myNameinput = new Scanner(System.in);
-        myName = myNameinput.nextLine();
+        Scanner scanner = new Scanner(System.in);
+        myName = scanner.nextLine();
         UserInteraction.firstPersonTimeBoundQuestion();
         UserInteraction.getStartAndFinish();
         personOneTimeBounds.add(UserInteraction.getStartTime());
         personOneTimeBounds.add(UserInteraction.getFinishTime());
 
-        System.out.println(myName+ " what is your colleagues name?");
-        Scanner colleaguesinput = new Scanner(System.in);
-        colleaguesName = colleaguesinput.nextLine();
-        UserInteraction.secondPersonTimeBoundQuestion();
-        UserInteraction.getStartAndFinish();
-        personTwoTimeBounds.add(UserInteraction.getStartTime());
-        personTwoTimeBounds.add(UserInteraction.getFinishTime());
+        getMeetingTimes();
+    }
 
-        UserInteraction.meetingsQuestion(myName,colleaguesName, personOneMeetingTimes, personTwoMeetingTimes);
+    public static void getMeetingTimes() {
+        UserInteraction.meetingsQuestion(myName, personOneMeetingTimes, personTwoMeetingTimes);
+        personTwoMeetingTimes = UserInteraction.getPersonTwoMeetings();
 
         personOneMeetingTimes.sort((a, b) -> {
             return Integer.parseInt(a.getStartTime().substring(0, 1)) * 60 + Integer.parseInt(a.getStartTime().substring(3, 4)) - Integer.parseInt(b.getStartTime().substring(0, 1)) * 60 + Integer.parseInt(b.getStartTime().substring(3, 4));
@@ -43,10 +42,8 @@ public class MeetingPlanner {
         System.out.println(personOneMeetingTimes);
         System.out.println(personTwoMeetingTimes);
 
-    }
-
-    public static void getMeetingTimes() {
-
+        UserInteraction.meetingDuration(colleaguesName);
+        meetingLength = UserInteraction.getMeetingLength();
     }
 }
 
