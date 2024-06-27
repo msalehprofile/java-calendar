@@ -25,14 +25,14 @@ public class MeetingPlanner {
     public static void planMeetings() {
         inputTimeBounds();
 
-        while(true) {
+        do {
             getMeetingTimes();
             findAvailableMeetingTime();
-            System.out.println("p1 meeting times: "+personOneMeetingTimes);
             UserInteraction.checkAvailabilityBlocksAreLongEnough(mutualAvailableTimeBlocks, meetingLength, personOneMeetingTimes, colleaguesName, myName, personTwoMeetingTimes);
             mutualAvailableTimeBlocks.clear();
-            UserInteraction.userChoice();
-        }
+            UserInteraction.userChoice(personOneMeetingTimes);
+
+        } while (UserInteraction.isCalendarStatus());
     }
 
     public static void inputTimeBounds() {
@@ -121,15 +121,8 @@ public class MeetingPlanner {
             };
         }
 
-        System.out.println("P1avail times: "+ personOneAvailableTimes);
-        System.out.println("P1avail times: "+ personTwoAvailableTimes);
-
         UserInteraction.meetingDuration(colleaguesName);
         meetingLength = UserInteraction.getMeetingLength();
-
-        System.out.println("meeting times ACTUAL: " +personTwoMeetingTimes);
-        System.out.println("meeting times: " + personOneMeetingTimesConvertedToNumbers);
-        System.out.println("meeting times: " + personTwoMeetingTimesConvertedToNumbers);
 
     }
 
@@ -144,8 +137,6 @@ public class MeetingPlanner {
             }
         }
 
-        System.out.println("avail ties: "+mutualAvailableTimes);
-
         for (int i=0; i < mutualAvailableTimes.size(); i++) {
             if(i==0 && personOneMeetingTimes.isEmpty() && (Integer.parseInt(mutualAvailableTimes.get(i))+1 != Integer.parseInt(mutualAvailableTimes.get(i+1)))) {
                 mutualAvailableTimeBlocks.add(mutualAvailableTimes.get(i));
@@ -154,13 +145,10 @@ public class MeetingPlanner {
             } else if(i==0 && (!personOneMeetingTimes.isEmpty() ) && (Integer.parseInt(mutualAvailableTimes.get(i))+1 != Integer.parseInt(mutualAvailableTimes.get(i+1)))) {
                 mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
                 mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
-                System.out.println("hetting here");
             } else if (i==0 && personOneMeetingTimes.isEmpty() ) {
                 mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
-                System.out.println("is empty (should be true): "+personOneMeetingTimes.isEmpty());
             }  else if (i == 0 && !personOneMeetingTimes.isEmpty()) {
                 mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
-                System.out.println("is empty(should be false): "+personOneMeetingTimes.isEmpty());
             }  else if(i == mutualAvailableTimes.size()-1) {
                 mutualAvailableTimeBlocks.add(mutualAvailableTimes.get(i));
             } else if (Integer.parseInt(mutualAvailableTimes.get(i))-1 != Integer.parseInt(mutualAvailableTimes.get(i-1))) {
@@ -169,7 +157,6 @@ public class MeetingPlanner {
                 mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
             } ;
         }
-        System.out.println("new: "+mutualAvailableTimeBlocks);
     }
 
 
