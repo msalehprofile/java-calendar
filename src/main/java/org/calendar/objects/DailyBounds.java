@@ -11,11 +11,11 @@ public class DailyBounds {
         return dailyAvailability[0];
     }
 
-    public void setworking(String working) {
+    public void setWorking(String working) {
         this.dailyAvailability[1] = working;
     }
 
-    public String getworking() {
+    public String getWorking() {
         return dailyAvailability[1];
     }
 

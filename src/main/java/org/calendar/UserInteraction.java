@@ -1,7 +1,9 @@
 package org.calendar;
 
 import org.calendar.objects.Meetings;
+import org.calendar.objects.TimeConversion;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Scanner;
@@ -34,13 +36,13 @@ public class UserInteraction {
         finishTime = myFinishTime.nextLine();
     }
 
-    public static void meetingsQuestion(String name, ArrayList<Meetings> meetingList, ArrayList<Meetings> secondMeetingList) {
+    public static void meetingsQuestion(String name, ArrayList<Meetings> personOneMeetingTimes, ArrayList<Meetings> secondMeetingList) {
         System.out.println(name + " do you have meetings today? (Y/N)");
         Scanner input = new Scanner(System.in);
         userInput = input.nextLine().toLowerCase();
         if(userInput.equals("y")) {
             do {
-                enteringMeetingTimes(meetingList);
+                enteringMeetingTimes(personOneMeetingTimes);
                 anotherMeetingCheck();
 
             } while (Objects.equals(userInput, "y"));
@@ -50,11 +52,11 @@ public class UserInteraction {
             collegueMeetingsQuestion();
         } else {
             System.out.println("Please chose a valid option.");
-            meetingsQuestion(name, meetingList, secondMeetingList);
+            meetingsQuestion(name, personOneMeetingTimes, secondMeetingList);
         }
     }
 
-    public static void enteringMeetingTimes(ArrayList<Meetings> meetingList){
+    public static void enteringMeetingTimes(ArrayList<Meetings> personOneMeetingTimes){
         Scanner input = new Scanner(System.in);
         System.out.println("Please enter the start and end times:"+ "\nStart time:");
         startTime = input.nextLine();
@@ -62,7 +64,8 @@ public class UserInteraction {
         System.out.println("Finish time:");
         finishTime = input.nextLine();
 
-        meetingList.add(new Meetings(startTime,finishTime));
+        personOneMeetingTimes.add(new Meetings(startTime,finishTime));
+//        meetingList.add(new Meetings(startTime,finishTime));
 
     }
 
@@ -73,9 +76,9 @@ public class UserInteraction {
     }
 
     public static void collegueMeetingsQuestion() {
-        personTwoMeetings.add(new Meetings("09:00","10:30"));
-        personTwoMeetings.add(new Meetings("10:40","11:30"));
-        personTwoMeetings.add(new Meetings("14:00","15:30"));
+//////        personTwoMeetings.add(new Meetings("09:00","10:30"));
+        personTwoMeetings.add(new Meetings("10:30","11:30"));
+        personTwoMeetings.add(new Meetings("14:00","15:00"));
     }
 
     public static void meetingDuration(String colleaguesName) {
@@ -92,4 +95,58 @@ public class UserInteraction {
         return finishTime;
     }
 
+    public static void checkAvailabilityBlocksAreLongEnough( ArrayList<String> mutualAvailableTimeBlocks, String meetingLength, ArrayList<Meetings> personOneMeetingTimes, String colleaguesName, String myName, ArrayList<Meetings> personTwoMeetingTimes) {
+        Scanner scanner = new Scanner(System.in);
+        int numberSystem = 0;
+        ArrayList<Integer> valueOfSetGroup = new ArrayList<>();
+        System.out.println("\nPlease select the time frame when you would like to book your meeting:");
+        for(int i=0; i < mutualAvailableTimeBlocks.size(); i += 2) {
+            if((i+2) == mutualAvailableTimeBlocks.size()) {
+                System.out.println(String.valueOf(numberSystem+=1) +".Start: "+ TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get(i))) + ", End: " + TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get(i +1))));
+                valueOfSetGroup.add(numberSystem);
+            } else if((Integer.parseInt(mutualAvailableTimeBlocks.get(i+1)) - Integer.parseInt(mutualAvailableTimeBlocks.get(i))  == 0)) {
+                System.out.println(String.valueOf(numberSystem+=1) +".Start: "+ TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get(i))) + ", End: " + TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get(i +1))+1));
+                valueOfSetGroup.add(numberSystem);
+            } else if(Integer.parseInt(mutualAvailableTimeBlocks.get(i+1)) - Integer.parseInt(mutualAvailableTimeBlocks.get(i)) >= TimeConversion.convertMeetingDurationToNumber(meetingLength)) {
+                System.out.println(String.valueOf(numberSystem+=1) +".Start: "+ TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get(i))) + ", End: " + TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get(i +1))+1));
+                valueOfSetGroup.add(numberSystem);
+            }
+        }
+        userInput = scanner.nextLine();
+
+        if( !userInput.matches("[0-9]+")) {
+            System.out.println("Please enter a valid option.");
+            checkAvailabilityBlocksAreLongEnough(mutualAvailableTimeBlocks, meetingLength, personOneMeetingTimes, colleaguesName, myName, personTwoMeetingTimes);
+        }
+
+        if(!valueOfSetGroup.contains(Integer.parseInt(userInput)) && userInput.matches("[0-9]+")) {
+            System.out.println("Please enter a valid option.");
+            checkAvailabilityBlocksAreLongEnough(mutualAvailableTimeBlocks, meetingLength, personOneMeetingTimes, colleaguesName, myName, personTwoMeetingTimes);
+        }
+        String chosenStartTime = TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get((Integer.parseInt(userInput)-1)*2)));
+        String chosenEndTime = TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get((Integer.parseInt(userInput)-1)*2))+TimeConversion.convertMeetingDurationToNumber(meetingLength));
+        System.out.println("Thank you "+myName+", you have successfully added a meeting to yours and "+ colleaguesName +" calendar for the below times:" +
+                "\nStart Time: "+ chosenStartTime +
+                "\nEnd Time: "+chosenEndTime);
+
+        personOneMeetingTimes.add(new Meetings(chosenStartTime,chosenEndTime));
+        personTwoMeetingTimes.add(new Meetings(chosenStartTime,chosenEndTime));
+        valueOfSetGroup.clear();
+    }
+
+    public static void userChoice() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("\nWould you like to book another meeting?" +
+                "\n1. Yes" +
+                "\n2. No");
+
+        userInput = scanner.nextLine();
+
+        if(!Objects.equals(userInput, "1") && !Objects.equals(userInput, "2")) {
+            System.out.println("Please enter a valid option.");
+            userChoice();
+        } else if (userInput.equals("2")) {
+            System.out.println("What would you like to do next?");
+        }
+    }
 }

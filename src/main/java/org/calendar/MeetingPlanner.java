@@ -3,10 +3,7 @@ import org.calendar.objects.DailyBounds;
 import org.calendar.objects.Meetings;
 import org.calendar.objects.TimeConversion;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -22,6 +19,21 @@ public class MeetingPlanner {
     static ArrayList<DailyBounds> personTwoAvailableTimes = new ArrayList<>();
     static ArrayList<String> personOneMeetingTimesConvertedToNumbers = new ArrayList<>();
     static ArrayList<String> personTwoMeetingTimesConvertedToNumbers = new ArrayList<>();
+    static ArrayList<String> mutualAvailableTimes = new ArrayList<>();
+    static ArrayList<String> mutualAvailableTimeBlocks = new ArrayList<>();
+
+    public static void planMeetings() {
+        inputTimeBounds();
+
+        while(true) {
+            getMeetingTimes();
+            findAvailableMeetingTime();
+            System.out.println("p1 meeting times: "+personOneMeetingTimes);
+            UserInteraction.checkAvailabilityBlocksAreLongEnough(mutualAvailableTimeBlocks, meetingLength, personOneMeetingTimes, colleaguesName, myName, personTwoMeetingTimes);
+            mutualAvailableTimeBlocks.clear();
+            UserInteraction.userChoice();
+        }
+    }
 
     public static void inputTimeBounds() {
         System.out.println("What is your name?");
@@ -42,26 +54,25 @@ public class MeetingPlanner {
 
         for (DailyBounds personOneAvailableTime : personOneAvailableTimes) {
             if (Integer.parseInt(String.valueOf(personOneAvailableTime.getStart())) >= TimeConversion.convertToNumber(personOneTimeBounds.get(0)) && Integer.parseInt(String.valueOf(personOneAvailableTime.getStart())) <= TimeConversion.convertToNumber(personOneTimeBounds.get(1))) {
-                personOneAvailableTime.setworking("Y");
+                personOneAvailableTime.setWorking("Y");
             }
         }
 
         for (int i=0; i < personTwoAvailableTimes.size(); i++) {
             if (Integer.parseInt(String.valueOf(personTwoAvailableTimes.get(i).getStart())) >= TimeConversion.convertToNumber(personTwoTimeBounds.get(0)) && Integer.parseInt(String.valueOf(personOneAvailableTimes.get(i).getStart())) <= TimeConversion.convertToNumber(personOneTimeBounds.get(1))) {
-                personTwoAvailableTimes.get(i).setworking("Y");
+                personTwoAvailableTimes.get(i).setWorking("Y");
             }
         }
-//        System.out.println("P1avail times: "+ personOneAvailableTimes);
-//        System.out.println("P2avail times: "+ personTwoAvailableTimes);
-        getMeetingTimes();
+        UserInteraction.meetingsQuestion(myName, personOneMeetingTimes, personTwoMeetingTimes);
     }
 
 
 
     public static void getMeetingTimes() {
-        UserInteraction.meetingsQuestion(myName, personOneMeetingTimes, personTwoMeetingTimes);
-        personTwoMeetingTimes = UserInteraction.getPersonTwoMeetings();
+        personOneMeetingTimesConvertedToNumbers.clear();
+        personTwoMeetingTimesConvertedToNumbers.clear();
 
+        personTwoMeetingTimes = UserInteraction.getPersonTwoMeetings();
         personOneMeetingTimes.sort((a, b) -> {
             return TimeConversion.convertTimeToMinutes(a.getStartTime()) - TimeConversion.convertTimeToMinutes(b.getStartTime());
         });
@@ -86,7 +97,7 @@ public class MeetingPlanner {
 
         for (Meetings personTwoMeetingTime : personTwoMeetingTimes) {
             String startingNumber =String.valueOf(TimeConversion.convertToNumber(personTwoMeetingTime.getStartTime()));
-            String finishingNumber =String.valueOf(TimeConversion.convertToNumber(personTwoMeetingTime.getEndTime()));
+            String finishingNumber =String.valueOf(TimeConversion.convertToNumber(personTwoMeetingTime.getEndTime())-1);
             personTwoMeetingTimesConvertedToNumbers.add(startingNumber);
             personTwoMeetingTimesConvertedToNumbers.add(finishingNumber);
 
@@ -116,29 +127,53 @@ public class MeetingPlanner {
         UserInteraction.meetingDuration(colleaguesName);
         meetingLength = UserInteraction.getMeetingLength();
 
+        System.out.println("meeting times ACTUAL: " +personTwoMeetingTimes);
         System.out.println("meeting times: " + personOneMeetingTimesConvertedToNumbers);
         System.out.println("meeting times: " + personTwoMeetingTimesConvertedToNumbers);
 
-
     }
 
-//    public static void findAvailableMeetingTime() {
-//        TimeConversion.convertTimeToMinutes(personOneTimeBounds.get(0));
-//        long personOneAvailableTime = TimeConversion.convertTimeToMinutes(personOneMeetingTimes.get(0).getStartTime()) - TimeConversion.convertTimeToMinutes(personOneTimeBounds.get(0));
-//        long personTwoAvailableTime = TimeConversion.convertTimeToMinutes(personTwoMeetingTimes.get(0).getStartTime()) - TimeConversion.convertTimeToMinutes(Arrays.stream(personTwoTimeBounds).distinct().collect(Collectors.toList()).get(0));
-//
-//        if (personOneAvailableTime >= Integer.parseInt(meetingLength) && personTwoAvailableTime>= Integer.parseInt(meetingLength)) {
-//            availableTimes.add(new Meetings(personOneTimeBounds.get(0),TimeConversion.convertMinutesToTime(TimeConversion.convertTimeToMinutes(personOneTimeBounds.get(0)+meetingLength))));
-//            System.out.println("Meeting starts at: "+ personOneTimeBounds.get(0) + " and finishes at: "+ TimeConversion.convertMinutesToTime(TimeConversion.convertTimeToMinutes(personOneTimeBounds.get(0)+meetingLength)));
-//            System.out.println("avail times: " + availableTimes);
-//        }
-//
-//        for (Meetings personOneMeetings: personOneMeetingTimes) {
-//            TimeConversion.convertTimeToMinutes(String.valueOf(personOneMeetingTimes.get(0)));
-//        }
-//
-//        System.out.println(TimeConversion.convertTimeToMinutes(personOneTimeBounds.get(0)));
-//    }
+    public static void findAvailableMeetingTime() {
+        mutualAvailableTimeBlocks.clear();
+        mutualAvailableTimes.clear();
+
+        for (int i=0; i < personOneAvailableTimes.size(); i++) {
+
+            if(Objects.equals(personOneAvailableTimes.get(i).getAvailable(), "Y") && Objects.equals(personOneAvailableTimes.get(i).getWorking(), "Y") && Objects.equals(personTwoAvailableTimes.get(i).getAvailable(), "Y") && Objects.equals(personTwoAvailableTimes.get(i).getWorking(), "Y")) {
+                mutualAvailableTimes.add(personOneAvailableTimes.get(i).getStart());
+            }
+        }
+
+        System.out.println("avail ties: "+mutualAvailableTimes);
+
+        for (int i=0; i < mutualAvailableTimes.size(); i++) {
+            if(i==0 && personOneMeetingTimes.isEmpty() && (Integer.parseInt(mutualAvailableTimes.get(i))+1 != Integer.parseInt(mutualAvailableTimes.get(i+1)))) {
+                mutualAvailableTimeBlocks.add(mutualAvailableTimes.get(i));
+                mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
+
+            } else if(i==0 && (!personOneMeetingTimes.isEmpty() ) && (Integer.parseInt(mutualAvailableTimes.get(i))+1 != Integer.parseInt(mutualAvailableTimes.get(i+1)))) {
+                mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
+                mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
+                System.out.println("hetting here");
+            } else if (i==0 && personOneMeetingTimes.isEmpty() ) {
+                mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
+                System.out.println("is empty (should be true): "+personOneMeetingTimes.isEmpty());
+            }  else if (i == 0 && !personOneMeetingTimes.isEmpty()) {
+                mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
+                System.out.println("is empty(should be false): "+personOneMeetingTimes.isEmpty());
+            }  else if(i == mutualAvailableTimes.size()-1) {
+                mutualAvailableTimeBlocks.add(mutualAvailableTimes.get(i));
+            } else if (Integer.parseInt(mutualAvailableTimes.get(i))-1 != Integer.parseInt(mutualAvailableTimes.get(i-1))) {
+                mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
+            } else if (Integer.parseInt(mutualAvailableTimes.get(i))+1 != Integer.parseInt(mutualAvailableTimes.get(i+1))) {
+                mutualAvailableTimeBlocks.add(String.valueOf(Integer.parseInt(mutualAvailableTimes.get(i))));
+            } ;
+        }
+        System.out.println("new: "+mutualAvailableTimeBlocks);
+    }
+
+
+
 
 }
 
