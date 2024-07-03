@@ -1,8 +1,5 @@
 package org.calendar.objects;
 
-import java.sql.Time;
-import java.util.Arrays;
-
 public class Meetings {
     private String[] meetingTimes;
 
