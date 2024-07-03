@@ -131,13 +131,14 @@ public class UserInteraction {
             int numberSystem = 0;
             System.out.println("\nPlease select the time frame when you would like to book your meeting:");
             for(int i=0; i < mutualAvailableTimeBlocks.size(); i += 2) {
-                int differenceBetweenMeetings = Integer.parseInt(mutualAvailableTimeBlocks.get(i+1)) - Integer.parseInt(mutualAvailableTimeBlocks.get(i));
+                int differenceBetweenMeetings = Integer.parseInt(mutualAvailableTimeBlocks.get(i+1)) - Integer.parseInt(mutualAvailableTimeBlocks.get(i)) +1;
+                int intMeetingLength  = TimeConversion.convertMeetingDurationToNumber(meetingLength);
                 if((i+2) == mutualAvailableTimeBlocks.size()) {
                     System.out.println(String.valueOf(numberSystem+=1) +".Start: "+ TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get(i))) + ", End: " + TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get(i +1))));
                     valueOfSetGroup.add(numberSystem);
-                } else if( differenceBetweenMeetings == 0 && differenceBetweenMeetings >=TimeConversion.convertMeetingDurationToNumber(meetingLength)-1) {
+                } else if( differenceBetweenMeetings == 0 && (differenceBetweenMeetings >= intMeetingLength)) {
                     System.out.println("difference: " +differenceBetweenMeetings);
-                    System.out.println("meeting length: "+TimeConversion.convertMeetingDurationToNumber(meetingLength));
+                    System.out.println("meeting length: "+intMeetingLength);
                     System.out.println(String.valueOf(numberSystem+=1) +".Start: "+ TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get(i))) + ", End: " + TimeConversion.convertNumberToTime(Integer.parseInt(mutualAvailableTimeBlocks.get(i +1))+1));
                     valueOfSetGroup.add(numberSystem);
                 } else if(differenceBetweenMeetings >= TimeConversion.convertMeetingDurationToNumber(meetingLength)) {
